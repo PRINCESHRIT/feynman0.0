@@ -1,0 +1,17 @@
+{
+  "name": "feynman-lessons",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": ["web"],
+  "scripts": {
+    "build:solver": "cd solver && /Users/shrit/.cargo/bin/wasm-pack build --target web --out-dir ../web/src/solver/wasm-pkg",
+    "build:web": "cd web && npm run build",
+    "build": "npm run build:solver && npm run build:web",
+    "dev": "npm run build:solver && cd web && npm run dev",
+    "test:solver": "cd solver && /Users/shrit/.cargo/bin/cargo test",
+    "test:web": "cd web && npx vitest run",
+    "test": "npm run test:solver && npm run test:web",
+    "lint": "cd web && npx eslint src/",
+    "format": "cd web && npx prettier --write src/"
+  }
+}

@@ -1,0 +1,61 @@
+.property-panel {
+  padding: 0;
+}
+
+.property-header {
+  padding: 8px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--border);
+}
+
+.property-fields {
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.property-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+}
+
+.property-row span {
+  color: var(--text-secondary);
+  min-width: 24px;
+}
+
+.property-input {
+  width: 80px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 3px 6px;
+  font-size: 12px;
+  text-align: right;
+}
+
+.property-input:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
+.delete-btn {
+  margin-top: 8px;
+  padding: 6px 12px;
+  background: rgba(239, 83, 80, 0.15);
+  color: var(--error);
+  border: 1px solid rgba(239, 83, 80, 0.3);
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.delete-btn:hover {
+  background: rgba(239, 83, 80, 0.25);
+}

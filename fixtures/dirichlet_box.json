@@ -1,0 +1,17 @@
+{
+  "name": "dirichlet_box",
+  "description": "No charges, all edges at V=1. Solution should be V=1 everywhere (Laplace equation with uniform Dirichlet BC).",
+  "config": {
+    "width": 32,
+    "height": 32,
+    "charges": [],
+    "boundary": { "DirichletFixed": { "voltages": [1.0, 1.0, 1.0, 1.0] } },
+    "engine": { "GaussSeidel": null },
+    "max_iterations": 10000,
+    "tolerance": 1e-6
+  },
+  "checks": {
+    "uniform_value": 1.0,
+    "tolerance": 1e-6
+  }
+}

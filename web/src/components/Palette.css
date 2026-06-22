@@ -1,0 +1,46 @@
+.palette {
+  border-bottom: 1px solid var(--border);
+}
+
+.palette-header {
+  padding: 8px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  letter-spacing: 0.5px;
+}
+
+.palette-items {
+  display: flex;
+  flex-direction: column;
+}
+
+.palette-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  text-align: left;
+  transition: background 0.15s;
+}
+
+.palette-item:hover {
+  background: var(--bg-hover);
+}
+
+.palette-item.active {
+  background: rgba(79, 195, 247, 0.15);
+  border-left: 2px solid var(--accent);
+}
+
+.palette-icon {
+  font-size: 18px;
+  font-weight: bold;
+  width: 24px;
+  text-align: center;
+}
+
+.palette-label {
+  font-size: 12px;
+}

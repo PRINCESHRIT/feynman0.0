@@ -1,0 +1,28 @@
+{
+  "name": "dipole",
+  "description": "Dipole: +1 charge at (12,16) and -1 charge at (20,16) on 32x32 grid. Dirichlet zero BC. Should produce antisymmetric potential about midpoint.",
+  "config": {
+    "width": 32,
+    "height": 32,
+    "charges": [
+      { "x": 12, "y": 16, "q": 1.0 },
+      { "x": 20, "y": 16, "q": -1.0 }
+    ],
+    "boundary": "DirichletZero",
+    "engine": { "GaussSeidel": null },
+    "max_iterations": 10000,
+    "tolerance": 1e-6
+  },
+  "checks": {
+    "antisymmetry": {
+      "description": "V(16+d, 16) ≈ -V(16-d, 16) for all d",
+      "tolerance": 1e-6
+    },
+    "midpoint_zero": {
+      "x": 16,
+      "y": 16,
+      "expected": 0.0,
+      "tolerance": 1e-6
+    }
+  }
+}

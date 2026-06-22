@@ -1,0 +1,23 @@
+{
+  "name": "point_charge",
+  "description": "Single positive point charge at center of 32x32 grid. Dirichlet zero BC. Should produce radially symmetric potential.",
+  "config": {
+    "width": 32,
+    "height": 32,
+    "charges": [
+      { "x": 16, "y": 16, "q": 1.0 }
+    ],
+    "boundary": "DirichletZero",
+    "engine": { "GaussSeidel": null },
+    "max_iterations": 10000,
+    "tolerance": 1e-6
+  },
+  "checks": {
+    "symmetry": {
+      "description": "V(16+d, 16) ≈ V(16-d, 16) ≈ V(16, 16+d) ≈ V(16, 16-d) for all d",
+      "tolerance": 1e-10
+    },
+    "center_positive": true,
+    "boundary_zero": true
+  }
+}

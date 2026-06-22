@@ -1,0 +1,18 @@
+{
+  "name": "parallel_plates",
+  "description": "No charges, left edge at V=1, right edge at V=0, top/bottom at V=0. Should produce approximately linear gradient in center region.",
+  "config": {
+    "width": 32,
+    "height": 32,
+    "charges": [],
+    "boundary": { "DirichletFixed": { "voltages": [0.0, 0.0, 0.0, 1.0] } },
+    "engine": { "GaussSeidel": null },
+    "max_iterations": 10000,
+    "tolerance": 1e-6
+  },
+  "checks": {
+    "left_boundary": 1.0,
+    "right_boundary": 0.0,
+    "monotonic_decrease_left_to_right": true
+  }
+}
