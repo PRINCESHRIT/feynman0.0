@@ -1,6 +1,7 @@
 import { Toolbar } from './Toolbar';
 import { RunTreePanel } from './RunTreePanel';
 import { FieldCanvas } from './FieldCanvas';
+import { DiffView } from './DiffView';
 import { Palette } from './Palette';
 import { PropertyPanel } from './PropertyPanel';
 import { BoundaryControls } from './BoundaryControls';
@@ -16,6 +17,7 @@ export function Layout() {
         <RunTreePanel />
         <div className="layout-canvas">
           <FieldCanvas />
+          <DiffView />
         </div>
         <div className="layout-right">
           <Palette />
