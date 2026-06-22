@@ -3,6 +3,7 @@ import { RunTreePanel } from './RunTreePanel';
 import { FieldCanvas } from './FieldCanvas';
 import { Palette } from './Palette';
 import { PropertyPanel } from './PropertyPanel';
+import { BoundaryControls } from './BoundaryControls';
 import { ConflictList } from './ConflictList';
 import { StatusBar } from './StatusBar';
 import './Layout.css';
@@ -19,6 +20,7 @@ export function Layout() {
         <div className="layout-right">
           <Palette />
           <PropertyPanel />
+          <BoundaryControls />
           <ConflictList />
         </div>
       </div>
