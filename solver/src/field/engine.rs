@@ -10,7 +10,7 @@ pub struct StepResult {
 }
 
 /// Trait for iterative field solvers.
-pub trait FieldSolver {
+pub trait FieldSolver: Send {
     /// Perform `n` iterations. Returns the result of the last iteration.
     fn step(&mut self, n: usize) -> StepResult;
 

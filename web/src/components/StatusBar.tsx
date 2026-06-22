@@ -3,6 +3,7 @@ import './StatusBar.css';
 
 export function StatusBar() {
   const solverStatus = useStore((s) => s.solverStatus);
+  const solverProgress = useStore((s) => s.solverProgress);
   const solveResult = useStore((s) => s.solveResult);
   const resolution = useStore((s) => s.resolution);
   const getActiveRun = useStore((s) => s.getActiveRun);
@@ -22,7 +23,10 @@ export function StatusBar() {
         Engine: {engineLabel[engine] ?? engine}
       </span>
       <span className="status-item">
-        {solverStatus === 'solving' && 'Solving...'}
+        {solverStatus === 'solving' && solverProgress && (
+          <>Solving... {solverProgress.iterations} iter (residual: {solverProgress.residual.toExponential(2)})</>
+        )}
+        {solverStatus === 'solving' && !solverProgress && 'Initializing...'}
         {solverStatus === 'converged' && solveResult && (
           <>Converged ✓ {solveResult.iterations} iter ({solveResult.timeMs.toFixed(0)}ms)</>
         )}
@@ -32,7 +36,17 @@ export function StatusBar() {
         {solverStatus === 'idle' && 'Ready'}
         {solverStatus === 'cancelled' && 'Cancelled'}
       </span>
-      <span className="status-item">
+      {solverStatus === 'solving' && solverProgress && (
+        <span className="status-item residual-bar">
+          <div
+            className="residual-fill"
+            style={{
+              width: `${Math.max(0, Math.min(100, 100 * (1 + Math.log10(Math.max(solverProgress.residual, 1e-10)) / 10)))}%`,
+            }}
+          />
+        </span>
+      )}
+      <span className="status-item status-right">
         {resolution}×{resolution}
       </span>
     </div>
