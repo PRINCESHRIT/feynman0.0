@@ -2,10 +2,12 @@ import { useEffect } from 'react';
 import { Toolbar } from './Toolbar';
 import { RunTreePanel } from './RunTreePanel';
 import { FieldCanvas } from './FieldCanvas';
+import { SchematicCanvas } from './SchematicCanvas';
 import { DiffView } from './DiffView';
 import { Palette } from './Palette';
 import { PropertyPanel } from './PropertyPanel';
 import { BoundaryControls } from './BoundaryControls';
+import { CircuitResultPanel } from './CircuitResultPanel';
 import { ConflictList } from './ConflictList';
 import { StatusBar } from './StatusBar';
 import { ErrorBoundary } from './ErrorBoundary';
@@ -14,6 +16,7 @@ import { useStore } from '../state/store';
 import './Layout.css';
 
 export function Layout() {
+  const mode = useStore((s) => s.mode);
   const setActiveTool = useStore((s) => s.setActiveTool);
   const setSelectedId = useStore((s) => s.setSelectedId);
   const selectedId = useStore((s) => s.selectedId);
@@ -25,7 +28,6 @@ export function Layout() {
   const setViewport = useStore((s) => s.setViewport);
   const viewport = useStore((s) => s.viewport);
 
-  // Keyboard shortcuts
   useEffect(() => {
     registerShortcuts([
       {
@@ -61,28 +63,23 @@ export function Layout() {
       {
         key: 'z',
         ctrl: true,
-        description: 'Undo (go to parent run)',
+        description: 'Undo',
         action: () => {
           const run = getActiveRun();
-          if (run?.parentId) {
-            setActiveRun(run.parentId);
-          }
+          if (run?.parentId) setActiveRun(run.parentId);
         },
       },
       {
         key: 'z',
         ctrl: true,
         shift: true,
-        description: 'Redo (go to newest child)',
+        description: 'Redo',
         action: () => {
           if (!activeRunId) return;
-          // Find children of current run, pick most recent
           const children = Array.from(runs.values())
             .filter((r) => r.parentId === activeRunId)
             .sort((a, b) => b.createdAt - a.createdAt);
-          if (children.length > 0) {
-            setActiveRun(children[0].id);
-          }
+          if (children.length > 0) setActiveRun(children[0].id);
         },
       },
       {
@@ -96,9 +93,10 @@ export function Layout() {
         action: () => setViewport({ ...viewport, scale: Math.max(viewport.scale / 1.2, 0.2) }),
       },
     ]);
-
     return () => unregisterShortcuts();
   });
+
+  const isCircuit = mode === 'circuit';
 
   return (
     <div className="layout">
@@ -108,15 +106,21 @@ export function Layout() {
           <RunTreePanel />
         </ErrorBoundary>
         <div className="layout-canvas">
-          <ErrorBoundary name="Field Canvas">
-            <FieldCanvas />
+          <ErrorBoundary name={isCircuit ? 'Schematic' : 'Field Canvas'}>
+            {isCircuit ? <SchematicCanvas /> : <FieldCanvas />}
           </ErrorBoundary>
           <DiffView />
         </div>
         <div className="layout-right">
           <Palette />
-          <PropertyPanel />
-          <BoundaryControls />
+          {isCircuit ? (
+            <CircuitResultPanel />
+          ) : (
+            <>
+              <PropertyPanel />
+              <BoundaryControls />
+            </>
+          )}
           <ConflictList />
         </div>
       </div>

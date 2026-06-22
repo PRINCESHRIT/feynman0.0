@@ -15,12 +15,20 @@ const fieldItems: PaletteItem[] = [
   { tool: 'place_negative', label: 'Negative Charge', color: '#42a5f5', symbol: '−' },
 ];
 
+const circuitItems: PaletteItem[] = [
+  { tool: 'select', label: 'Select', color: 'var(--text-secondary)', symbol: '↖' },
+  { tool: 'place_resistor', label: 'Resistor', color: '#e8e8e8', symbol: '⏛' },
+  { tool: 'place_vsource', label: 'Voltage Source', color: '#ef5350', symbol: 'V' },
+  { tool: 'place_isource', label: 'Current Source', color: '#ffa726', symbol: 'I' },
+  { tool: 'place_ground', label: 'Ground', color: '#66bb6a', symbol: '⏚' },
+];
+
 export function Palette() {
   const activeTool = useStore((s) => s.activeTool);
   const setActiveTool = useStore((s) => s.setActiveTool);
   const mode = useStore((s) => s.mode);
 
-  const items = mode === 'field' ? fieldItems : [];
+  const items = mode === 'field' ? fieldItems : circuitItems;
 
   return (
     <div className="palette">

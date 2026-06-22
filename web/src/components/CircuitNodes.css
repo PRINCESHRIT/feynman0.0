@@ -1,0 +1,48 @@
+.circuit-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  min-width: 80px;
+  cursor: grab;
+}
+
+.circuit-node:hover {
+  border-color: var(--accent);
+  background: var(--bg-hover);
+}
+
+.circuit-label {
+  font-size: 11px;
+  color: var(--text-primary);
+  margin-top: 4px;
+  white-space: nowrap;
+}
+
+.circuit-result {
+  font-size: 10px;
+  color: var(--success);
+  font-weight: 600;
+  margin-top: 2px;
+  white-space: nowrap;
+}
+
+.circuit-nodes-label {
+  font-size: 9px;
+  color: var(--accent);
+  margin-top: 2px;
+  white-space: nowrap;
+  opacity: 0.8;
+}
+
+.ground-node {
+  min-width: 50px;
+}
+
+.wire-node {
+  min-width: 60px;
+  padding: 4px 8px;
+}

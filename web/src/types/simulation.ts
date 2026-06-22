@@ -1,3 +1,5 @@
+import type { CircuitConfig, CircuitResult } from './circuit';
+
 // ── Grid & Geometry ──
 
 export interface GridConfig {
@@ -56,15 +58,25 @@ export interface Run {
   id: string;
   parentId: string | null;
   mode: SimMode;
-  config: FieldConfig; // | CircuitConfig in Phase 8
+  config: FieldConfig;
+  circuitConfig?: CircuitConfig;
   result: SolveResult | null;
+  circuitResult?: CircuitResult | null;
   label: string;
   createdAt: number;
 }
 
 // ── Editor State ──
 
-export type EditorTool = 'select' | 'place_positive' | 'place_negative';
+export type EditorTool =
+  | 'select'
+  | 'place_positive'
+  | 'place_negative'
+  | 'place_resistor'
+  | 'place_vsource'
+  | 'place_isource'
+  | 'place_wire'
+  | 'place_ground';
 
 // ── Solver Status ──
 

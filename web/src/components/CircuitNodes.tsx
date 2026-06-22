@@ -1,65 +1,112 @@
 import { Handle, Position, type NodeProps } from '@xyflow/react';
+import './CircuitNodes.css';
 
-// SVG component symbols for circuit schematic
+interface CircuitNodeData {
+  label: string;
+  resultLabel?: string;
+  nodeLabel?: string;
+  value?: number;
+  hasResult?: boolean;
+}
 
-export function ResistorNode({ data }: NodeProps) {
+function getData(props: NodeProps): CircuitNodeData {
+  return props.data as unknown as CircuitNodeData;
+}
+
+export function ResistorNode(props: NodeProps) {
+  const d = getData(props);
   return (
-    <div className="circuit-node resistor">
+    <div className="circuit-node resistor-node">
       <Handle type="target" position={Position.Left} />
-      <svg width="60" height="24" viewBox="0 0 60 24">
+      <svg width="80" height="28" viewBox="0 0 80 28">
         <polyline
-          points="0,12 8,12 12,2 20,22 28,2 36,22 44,2 48,12 60,12"
+          points="0,14 10,14 14,4 22,24 30,4 38,24 46,4 54,24 58,14 80,14"
           fill="none"
           stroke="#e8e8e8"
           strokeWidth="2"
         />
       </svg>
-      <span className="circuit-label">{(data as any).label}</span>
+      <div className="circuit-label">{d.label}</div>
+      {d.hasResult && d.resultLabel && (
+        <div className="circuit-result">{d.resultLabel}</div>
+      )}
+      {d.hasResult && d.nodeLabel && (
+        <div className="circuit-nodes-label">{d.nodeLabel}</div>
+      )}
       <Handle type="source" position={Position.Right} />
     </div>
   );
 }
 
-export function VoltageSourceNode({ data }: NodeProps) {
+export function VoltageSourceNode(props: NodeProps) {
+  const d = getData(props);
   return (
-    <div className="circuit-node voltage-source">
+    <div className="circuit-node vsource-node">
       <Handle type="target" position={Position.Left} />
-      <svg width="40" height="40" viewBox="0 0 40 40">
-        <circle cx="20" cy="20" r="16" fill="none" stroke="#e8e8e8" strokeWidth="2" />
-        <text x="14" y="18" fill="#ef5350" fontSize="12" fontWeight="bold">+</text>
-        <text x="22" y="28" fill="#42a5f5" fontSize="12" fontWeight="bold">−</text>
+      <svg width="48" height="48" viewBox="0 0 48 48">
+        <circle cx="24" cy="24" r="20" fill="none" stroke="#e8e8e8" strokeWidth="2" />
+        <line x1="4" y1="24" x2="14" y2="24" stroke="#e8e8e8" strokeWidth="2" />
+        <line x1="34" y1="24" x2="44" y2="24" stroke="#e8e8e8" strokeWidth="2" />
+        <text x="18" y="20" fill="#ef5350" fontSize="14" fontWeight="bold">+</text>
+        <text x="26" y="34" fill="#42a5f5" fontSize="14" fontWeight="bold">−</text>
       </svg>
-      <span className="circuit-label">{(data as any).label}</span>
+      <div className="circuit-label">{d.label}</div>
+      {d.hasResult && d.resultLabel && (
+        <div className="circuit-result">{d.resultLabel}</div>
+      )}
+      {d.hasResult && d.nodeLabel && (
+        <div className="circuit-nodes-label">{d.nodeLabel}</div>
+      )}
       <Handle type="source" position={Position.Right} />
     </div>
   );
 }
 
-export function CurrentSourceNode({ data }: NodeProps) {
+export function CurrentSourceNode(props: NodeProps) {
+  const d = getData(props);
   return (
-    <div className="circuit-node current-source">
+    <div className="circuit-node isource-node">
       <Handle type="target" position={Position.Left} />
-      <svg width="40" height="40" viewBox="0 0 40 40">
-        <circle cx="20" cy="20" r="16" fill="none" stroke="#e8e8e8" strokeWidth="2" />
-        <line x1="20" y1="8" x2="20" y2="32" stroke="#e8e8e8" strokeWidth="2" />
-        <polygon points="20,8 16,16 24,16" fill="#e8e8e8" />
+      <svg width="48" height="48" viewBox="0 0 48 48">
+        <circle cx="24" cy="24" r="20" fill="none" stroke="#e8e8e8" strokeWidth="2" />
+        <line x1="24" y1="10" x2="24" y2="38" stroke="#e8e8e8" strokeWidth="2" />
+        <polygon points="24,10 20,18 28,18" fill="#e8e8e8" />
       </svg>
-      <span className="circuit-label">{(data as any).label}</span>
+      <div className="circuit-label">{d.label}</div>
+      {d.hasResult && d.nodeLabel && (
+        <div className="circuit-nodes-label">{d.nodeLabel}</div>
+      )}
       <Handle type="source" position={Position.Right} />
     </div>
   );
 }
 
-export function GroundNode(_props: NodeProps) {
+export function GroundNode(props: NodeProps) {
+  const d = getData(props);
   return (
-    <div className="circuit-node ground">
+    <div className="circuit-node ground-node">
       <Handle type="target" position={Position.Top} />
-      <svg width="30" height="24" viewBox="0 0 30 24">
-        <line x1="15" y1="0" x2="15" y2="8" stroke="#e8e8e8" strokeWidth="2" />
-        <line x1="5" y1="8" x2="25" y2="8" stroke="#e8e8e8" strokeWidth="2" />
-        <line x1="8" y1="14" x2="22" y2="14" stroke="#e8e8e8" strokeWidth="2" />
-        <line x1="11" y1="20" x2="19" y2="20" stroke="#e8e8e8" strokeWidth="2" />
+      <svg width="36" height="28" viewBox="0 0 36 28">
+        <line x1="18" y1="0" x2="18" y2="8" stroke="#e8e8e8" strokeWidth="2" />
+        <line x1="6" y1="8" x2="30" y2="8" stroke="#e8e8e8" strokeWidth="2" />
+        <line x1="10" y1="14" x2="26" y2="14" stroke="#e8e8e8" strokeWidth="2" />
+        <line x1="14" y1="20" x2="22" y2="20" stroke="#e8e8e8" strokeWidth="2" />
       </svg>
+      <div className="circuit-label">{d.label}</div>
+    </div>
+  );
+}
+
+export function WireNode(props: NodeProps) {
+  const d = getData(props);
+  return (
+    <div className="circuit-node wire-node">
+      <Handle type="target" position={Position.Left} />
+      <svg width="60" height="8" viewBox="0 0 60 8">
+        <line x1="0" y1="4" x2="60" y2="4" stroke="#4fc3f7" strokeWidth="2" />
+      </svg>
+      <div className="circuit-label">{d.label}</div>
+      <Handle type="source" position={Position.Right} />
     </div>
   );
 }
