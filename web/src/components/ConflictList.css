@@ -1,0 +1,44 @@
+.conflict-list {
+  border-top: 1px solid var(--border);
+}
+
+.conflict-header {
+  padding: 8px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  letter-spacing: 0.5px;
+}
+
+.conflict-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.conflict-item.error {
+  color: var(--error);
+}
+
+.conflict-item.warning {
+  color: var(--warning);
+}
+
+.conflict-item.info {
+  color: var(--text-secondary);
+}
+
+.conflict-icon {
+  flex-shrink: 0;
+  width: 14px;
+  text-align: center;
+  font-size: 12px;
+}
+
+.conflict-message {
+  flex: 1;
+}

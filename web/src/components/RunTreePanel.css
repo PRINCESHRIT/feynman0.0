@@ -14,47 +14,58 @@
   color: var(--text-secondary);
   letter-spacing: 0.5px;
   border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
 }
 
-.run-tree-list {
+.run-tree-flow {
   flex: 1;
-  overflow-y: auto;
+  min-height: 0;
 }
 
-.run-tree-item {
+/* Run tree node styles */
+.run-tree-node {
   display: flex;
   align-items: center;
   gap: 6px;
-  width: 100%;
-  padding: 6px 12px;
-  text-align: left;
-  font-size: 12px;
-  transition: background 0.15s;
+  padding: 6px 10px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 11px;
+  cursor: pointer;
+  min-width: 140px;
+  transition: all 0.15s;
 }
 
-.run-tree-item:hover {
+.run-tree-node:hover {
   background: var(--bg-hover);
 }
 
-.run-tree-item.active {
-  background: rgba(79, 195, 247, 0.15);
-  border-left: 2px solid var(--accent);
+.run-tree-node.active {
+  border-color: var(--accent);
+  background: rgba(79, 195, 247, 0.1);
 }
 
-.run-status {
-  font-size: 11px;
-  width: 16px;
-  text-align: center;
+.run-tree-node.converged .run-node-status {
+  color: var(--success);
 }
 
-.run-label {
+.run-tree-node.failed .run-node-status {
+  color: var(--warning);
+}
+
+.run-tree-node.pending .run-node-status {
+  color: var(--text-secondary);
+}
+
+.run-node-label {
   flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.run-charges {
+.run-node-meta {
   color: var(--text-secondary);
   font-size: 10px;
 }
