@@ -5,8 +5,18 @@
 }
 
 .field-canvas {
-  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
+}
+
+.webgl-layer {
+  z-index: 0;
+}
+
+.overlay-layer {
+  z-index: 1;
   cursor: crosshair;
 }
