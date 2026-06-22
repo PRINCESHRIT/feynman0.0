@@ -145,6 +145,21 @@ pub fn free_field_solver(handle: u32) {
     SOLVERS.lock().unwrap().remove(&handle);
 }
 
+// ── Circuit MNA WASM Entry Point ──
+
+/// Solve a DC circuit via MNA. Input and output are JSON strings.
+#[wasm_bindgen]
+pub fn solve_circuit(config_json: &str) -> Result<String, JsValue> {
+    let config: circuit::mna::CircuitConfig = serde_json::from_str(config_json)
+        .map_err(|e| JsValue::from_str(&format!("Invalid circuit config: {e}")))?;
+
+    let result = circuit::mna::solve_mna(&config);
+    let json = serde_json::to_string(&result)
+        .map_err(|e| JsValue::from_str(&format!("Serialization error: {e}")))?;
+
+    Ok(json)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
