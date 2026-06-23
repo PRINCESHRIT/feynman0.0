@@ -1,0 +1,65 @@
+.export-menu-container {
+  position: relative;
+}
+
+.export-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 0;
+  min-width: 200px;
+  z-index: 100;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.export-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 12px;
+  text-align: left;
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.export-item:hover:not(:disabled) {
+  background: var(--bg-hover);
+}
+
+.export-item:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.export-note {
+  font-size: 10px;
+  color: var(--text-secondary);
+}
+
+.export-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 4px 0;
+}
+
+.export-share-url {
+  padding: 6px 12px;
+  font-size: 10px;
+  font-family: monospace;
+  color: var(--accent);
+  word-break: break-all;
+}
+
+.export-error {
+  padding: 6px 12px;
+  font-size: 10px;
+  color: var(--error);
+}

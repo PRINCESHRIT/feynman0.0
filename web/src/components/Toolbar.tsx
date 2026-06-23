@@ -2,6 +2,7 @@ import { useStore } from '../state/store';
 import { requestSolve, cancelSolve, cancelHard } from '../solver/solveController';
 import { solveCircuitMNA } from '../solver/circuitSolver';
 import { DEMO_CIRCUITS } from '../solver/demoCircuits';
+import { ExportMenu } from './ExportMenu';
 import type { FieldEngineType } from '../types/simulation';
 import './Toolbar.css';
 
@@ -142,6 +143,10 @@ export function Toolbar() {
       {inlineFallback && (
         <span className="toolbar-badge inline-badge">Inline Mode</span>
       )}
+
+      <div className="toolbar-divider" />
+
+      <ExportMenu />
 
       <div className="toolbar-divider" />
 
