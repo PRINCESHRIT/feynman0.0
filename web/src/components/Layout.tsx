@@ -18,8 +18,8 @@ import './Layout.css';
 export function Layout() {
   const mode = useStore((s) => s.mode);
   const setActiveTool = useStore((s) => s.setActiveTool);
-  const setSelectedId = useStore((s) => s.setSelectedId);
-  const selectedId = useStore((s) => s.selectedId);
+  const clearSelection = useStore((s) => s.clearSelection);
+  const selectedIds = useStore((s) => s.selectedIds);
   const getActiveRun = useStore((s) => s.getActiveRun);
   const forkRun = useStore((s) => s.forkRun);
   const setActiveRun = useStore((s) => s.setActiveRun);
@@ -34,7 +34,7 @@ export function Layout() {
         key: 'Escape',
         description: 'Deselect',
         action: () => {
-          setSelectedId(null);
+          clearSelection();
           setActiveTool('select');
         },
       },
@@ -52,12 +52,12 @@ export function Layout() {
         key: 'Delete',
         description: 'Delete selected',
         action: () => {
-          if (!selectedId) return;
+          if (selectedIds.size === 0) return;
           const run = getActiveRun();
           if (!run) return;
-          const newCharges = run.config.charges.filter((c) => c.id !== selectedId);
+          const newCharges = run.config.charges.filter((c) => !selectedIds.has(c.id));
           forkRun(run.id, { charges: newCharges });
-          setSelectedId(null);
+          clearSelection();
         },
       },
       {

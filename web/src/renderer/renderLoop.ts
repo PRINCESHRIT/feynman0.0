@@ -30,6 +30,7 @@ export interface RenderState {
   gridHeight: number;
   charges: PointCharge[];
   selectedId: string | null;
+  selectedIds?: Set<string>;
   showGrid: boolean;
   showEquipotentials: boolean;
   showVectors: boolean;
@@ -237,7 +238,8 @@ export class RenderLoop {
 
     if (!result) {
       // Still draw charges even without a solve result
-      this.drawCharges(ctx, charges, selectedId, cellW, cellH, viewport);
+      const selSet2 = this.state.selectedIds ?? (selectedId ? new Set([selectedId]) : new Set<string>());
+      this.drawCharges(ctx, charges, selSet2, cellW, cellH, viewport);
       return;
     }
 
@@ -300,13 +302,14 @@ export class RenderLoop {
     }
 
     // Charges — always drawn
-    this.drawCharges(ctx, charges, selectedId, cellW, cellH, viewport);
+    const selSet = this.state.selectedIds ?? (selectedId ? new Set([selectedId]) : new Set<string>());
+    this.drawCharges(ctx, charges, selSet, cellW, cellH, viewport);
   }
 
   private drawCharges(
     ctx: CanvasRenderingContext2D,
     charges: PointCharge[],
-    selectedId: string | null,
+    selectedIds: Set<string>,
     cellW: number,
     cellH: number,
     viewport: Viewport,
@@ -314,7 +317,7 @@ export class RenderLoop {
     for (const charge of charges) {
       const cx = (charge.x + 0.5) * cellW + viewport.offsetX;
       const cy = (charge.y + 0.5) * cellH + viewport.offsetY;
-      const isSelected = selectedId === charge.id;
+      const isSelected = selectedIds.has(charge.id);
 
       ctx.beginPath();
       ctx.arc(cx, cy, CHARGE_RADIUS, 0, Math.PI * 2);
