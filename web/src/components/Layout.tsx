@@ -9,6 +9,7 @@ import { PropertyPanel } from './PropertyPanel';
 import { BoundaryControls } from './BoundaryControls';
 import { CircuitResultPanel } from './CircuitResultPanel';
 import { LiveControls } from './LiveControls';
+import { FieldProbe } from './FieldProbe';
 import { ConflictList } from './ConflictList';
 import { StatusBar } from './StatusBar';
 import { ErrorBoundary } from './ErrorBoundary';
@@ -255,6 +256,7 @@ export function Layout() {
           ) : (
             <>
               <LiveControls />
+              <FieldProbe />
               <PropertyPanel />
               <BoundaryControls />
             </>

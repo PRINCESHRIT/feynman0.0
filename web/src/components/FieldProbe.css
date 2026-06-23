@@ -1,0 +1,65 @@
+.field-probe {
+  border-bottom: 1px solid var(--border);
+}
+
+.probe-header {
+  padding: 8px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--border);
+}
+
+.probe-reading {
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.probe-reading.pinned {
+  background: rgba(79, 195, 247, 0.05);
+}
+
+.probe-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2px;
+}
+
+.probe-value {
+  font-size: 11px;
+  font-family: monospace;
+  color: var(--text-primary);
+  padding: 1px 0;
+}
+
+.probe-no-data {
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.probe-remove {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0 4px;
+}
+
+.probe-remove:hover {
+  color: var(--error);
+}
+
+.probe-hint {
+  padding: 12px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  text-align: center;
+}
