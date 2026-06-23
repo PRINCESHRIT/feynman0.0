@@ -1,19 +1,9 @@
 import { useStore } from '../state/store';
-import { solveGaussSeidel } from '../solver/gaussSeidel';
+import { requestSolve, cancelSolve, cancelHard } from '../solver/solveController';
 import { solveCircuitMNA } from '../solver/circuitSolver';
-import { WorkerManager } from '../solver/workerManager';
 import { DEMO_CIRCUITS } from '../solver/demoCircuits';
 import type { FieldEngineType } from '../types/simulation';
 import './Toolbar.css';
-
-const workerManagerRef = { current: null as WorkerManager | null };
-
-function getWorkerManager(): WorkerManager {
-  if (!workerManagerRef.current) {
-    workerManagerRef.current = new WorkerManager();
-  }
-  return workerManagerRef.current;
-}
 
 export function Toolbar() {
   const mode = useStore((s) => s.mode);
@@ -35,41 +25,23 @@ export function Toolbar() {
   const toggleVectors = useStore((s) => s.toggleVectors);
   const showGrid = useStore((s) => s.showGrid);
   const toggleGrid = useStore((s) => s.toggleGrid);
+  const inlineFallback = useStore((s) => s.inlineFallback);
 
   const handleSolveField = async () => {
     const run = getActiveRun();
     if (!run) return;
-
-    setSolverStatus('solving');
-    setSolverProgress(null);
 
     const config = {
       ...run.config,
       grid: { width: resolution, height: resolution },
     };
 
-    try {
-      const wm = getWorkerManager();
-      const result = await wm.solve(config, {
-        mode: 'commit',
-        onProgress: (progress) => setSolverProgress(progress),
-      });
+    // Use the SolveController — handles worker, superseding, warm-start
+    const result = await requestSolve(config, 'commit');
 
-      if (result) {
-        setSolveResult(result);
-        updateResult(run.id, result);
-        setSolverStatus(result.converged ? 'converged' : 'failed');
-      } else {
-        setSolverStatus('cancelled');
-      }
-    } catch {
-      // Fallback to TS solver
-      setTimeout(() => {
-        const result = solveGaussSeidel(config);
-        setSolveResult(result);
-        updateResult(run.id, result);
-        setSolverStatus(result.converged ? 'converged' : 'failed');
-      }, 0);
+    if (result) {
+      setSolveResult(result);
+      updateResult(run.id, result);
     }
   };
 
@@ -85,7 +57,6 @@ export function Toolbar() {
     updateCircuitResult(run.id, result);
     setSolverStatus(result.success ? 'converged' : 'failed');
 
-    // Show in status bar
     setSolverProgress(null);
     if (result.success) {
       setSolveResult({
@@ -108,7 +79,7 @@ export function Toolbar() {
   };
 
   const handleCancel = () => {
-    getWorkerManager().cancel();
+    cancelHard(); // Aggressive: terminate + respawn
     setSolverStatus('cancelled');
   };
 
@@ -123,7 +94,6 @@ export function Toolbar() {
     if (newMode === 'circuit') {
       const run = getActiveRun();
       if (!run?.circuitConfig) {
-        // Auto-load first demo circuit
         createCircuitRun(DEMO_CIRCUITS[0].factory());
       }
     }
@@ -167,6 +137,10 @@ export function Toolbar() {
         <button className="toolbar-btn solve-btn" onClick={handleSolve}>
           Solve
         </button>
+      )}
+
+      {inlineFallback && (
+        <span className="toolbar-badge inline-badge">Inline Mode</span>
       )}
 
       <div className="toolbar-divider" />

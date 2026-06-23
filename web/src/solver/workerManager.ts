@@ -1,5 +1,12 @@
+/**
+ * Legacy WorkerManager — superseded by SolveController (Phase 0).
+ *
+ * Kept for reference. New code should use solveController.ts instead.
+ * The SolveController provides: job superseding, warm-start, zero-copy
+ * transfers, and decoupled render/solve loops.
+ */
+
 import type { FieldConfig, SolveResult, SolverProgress } from '../types/simulation';
-import type { WorkerMessage, WorkerResponse } from './solver.worker';
 
 export interface SolveOptions {
   mode: 'preview' | 'commit';
@@ -13,11 +20,10 @@ export class WorkerManager {
   private startTime = 0;
 
   private createWorker(): Worker {
-    const worker = new Worker(
+    return new Worker(
       new URL('./solver.worker.ts', import.meta.url),
       { type: 'module' },
     );
-    return worker;
   }
 
   private ensureWorker(): Worker {
@@ -31,7 +37,6 @@ export class WorkerManager {
     const worker = this.ensureWorker();
     const chunkSize = options.chunkSize ?? (options.mode === 'preview' ? 50 : 500);
 
-    // Build WASM config JSON
     const wasmConfig = {
       width: config.grid.width,
       height: config.grid.height,
@@ -45,30 +50,23 @@ export class WorkerManager {
       omega: null,
       max_iterations: config.maxIterations,
       tolerance: config.tolerance,
+      chunk_size: chunkSize,
     };
 
     return new Promise<SolveResult | null>((resolve) => {
       this.resolvePromise = resolve;
       this.startTime = performance.now();
 
-      worker.onmessage = (e: MessageEvent<WorkerResponse>) => {
+      worker.onmessage = (e: MessageEvent) => {
         const msg = e.data;
         switch (msg.type) {
           case 'ready':
-            // Solver initialized, now solve
-            worker.postMessage({
-              type: 'solve',
-              chunkSize,
-              maxIterations: config.maxIterations,
-              tolerance: config.tolerance,
-            } satisfies WorkerMessage);
+            worker.postMessage({ type: 'solve', jobId: 0 });
             break;
-
           case 'progress':
             options.onProgress?.({ iterations: msg.iterations, residual: msg.residual });
             break;
-
-          case 'done':
+          case 'result':
             resolve({
               potential: msg.potential,
               width: msg.width,
@@ -79,11 +77,9 @@ export class WorkerManager {
               timeMs: performance.now() - this.startTime,
             });
             break;
-
           case 'cancelled':
             resolve(null);
             break;
-
           case 'error':
             console.error('Solver worker error:', msg.message);
             resolve(null);
@@ -91,17 +87,16 @@ export class WorkerManager {
         }
       };
 
-      // Initialize solver
       worker.postMessage({
         type: 'init',
+        jobId: 0,
         config: JSON.stringify(wasmConfig),
-      } satisfies WorkerMessage);
+      });
     });
   }
 
   cancel(): void {
     if (this.worker) {
-      // For preview: terminate and respawn (fast, aggressive)
       this.worker.terminate();
       this.worker = null;
       this.resolvePromise?.(null);
@@ -110,8 +105,7 @@ export class WorkerManager {
   }
 
   cancelGraceful(): void {
-    // For high-res: send cancel message, let chunked loop handle it
-    this.worker?.postMessage({ type: 'cancel' } satisfies WorkerMessage);
+    this.worker?.postMessage({ type: 'cancel' });
   }
 
   dispose(): void {

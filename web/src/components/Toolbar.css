@@ -79,3 +79,19 @@
   padding: 2px 4px;
   font-size: 12px;
 }
+
+.toolbar-badge.inline-badge {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 3px;
+  background: rgba(255, 167, 38, 0.2);
+  color: #ffa726;
+  font-weight: 600;
+}
+
+.toolbar-btn.cancel-btn {
+  background: rgba(239, 83, 80, 0.2);
+  color: #ef5350;
+  font-weight: 600;
+  padding: 6px 20px;
+}

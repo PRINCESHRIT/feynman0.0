@@ -6,6 +6,7 @@ export function StatusBar() {
   const solverProgress = useStore((s) => s.solverProgress);
   const solveResult = useStore((s) => s.solveResult);
   const resolution = useStore((s) => s.resolution);
+  const inlineFallback = useStore((s) => s.inlineFallback);
   const getActiveRun = useStore((s) => s.getActiveRun);
 
   const run = getActiveRun();
@@ -45,6 +46,9 @@ export function StatusBar() {
             }}
           />
         </span>
+      )}
+      {inlineFallback && (
+        <span className="status-item status-warn">⚠ Reduced performance mode</span>
       )}
       <span className="status-item status-right">
         {resolution}×{resolution}

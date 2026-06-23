@@ -34,3 +34,8 @@
   border-radius: 3px;
   transition: width 0.1s;
 }
+
+.status-warn {
+  color: #ffa726;
+  font-weight: 600;
+}

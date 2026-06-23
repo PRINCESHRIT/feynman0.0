@@ -1,27 +1,29 @@
+/**
+ * FieldCanvas — Phase 0 integration.
+ *
+ * Thin React shell around the decoupled RenderLoop + SolveController.
+ * React handles input events and state sync. The RAF loop handles rendering.
+ * The worker handles solving. They never wait on each other.
+ */
+
 import { useRef, useEffect, useCallback } from 'react';
 import { useStore } from '../state/store';
-import { renderHeatmap2D } from '../renderer/heatmapCanvas2D';
-import { WebGLHeatmapRenderer } from '../renderer/webglHeatmap';
-import { extractContours, autoContourLevels } from '../renderer/contours';
-import { computeFieldVectors } from '../solver/fieldVectors';
+import { RenderLoop } from '../renderer/renderLoop';
 import { generateId } from '../utils/id';
 import type { PointCharge } from '../types/simulation';
 import './FieldCanvas.css';
 
 const CHARGE_RADIUS = 12;
-const VECTOR_SUBSAMPLE = 4; // draw every Nth cell
-const VECTOR_MAX_LEN = 20;
 
 export function FieldCanvas() {
   const webglCanvasRef = useRef<HTMLCanvasElement>(null);
   const overlayCanvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const glRendererRef = useRef<WebGLHeatmapRenderer | null>(null);
+  const renderLoopRef = useRef<RenderLoop | null>(null);
 
   const activeTool = useStore((s) => s.activeTool);
   const selectedId = useStore((s) => s.selectedId);
   const setSelectedId = useStore((s) => s.setSelectedId);
-  const solveResult = useStore((s) => s.solveResult);
   const getActiveRun = useStore((s) => s.getActiveRun);
   const forkRun = useStore((s) => s.forkRun);
   const viewport = useStore((s) => s.viewport);
@@ -29,235 +31,63 @@ export function FieldCanvas() {
   const showEquipotentials = useStore((s) => s.showEquipotentials);
   const showVectors = useStore((s) => s.showVectors);
 
-  // Initialize WebGL renderer
+  // Boot render loop once
   useEffect(() => {
-    const canvas = webglCanvasRef.current;
-    if (!canvas) return;
-    try {
-      glRendererRef.current = new WebGLHeatmapRenderer(canvas);
-    } catch {
-      // WebGL2 not available, fall back to Canvas 2D
-      console.warn('WebGL2 not available, using Canvas 2D fallback');
-    }
+    const webgl = webglCanvasRef.current;
+    const overlay = overlayCanvasRef.current;
+    if (!webgl || !overlay) return;
+
+    const loop = new RenderLoop();
+    loop.attach(webgl, overlay);
+    loop.start();
+    renderLoopRef.current = loop;
+
     return () => {
-      glRendererRef.current?.dispose();
-      glRendererRef.current = null;
+      loop.dispose();
+      renderLoopRef.current = null;
     };
   }, []);
 
-  const drawOverlay = useCallback(() => {
-    const canvas = overlayCanvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+  // Sync React state → render loop (cheap writes, no renders)
+  useEffect(() => {
+    const loop = renderLoopRef.current;
+    if (!loop) return;
 
     const run = getActiveRun();
-    const { width, height } = canvas;
-
-    ctx.clearRect(0, 0, width, height);
-
-    if (!run) return;
-    const config = run.config;
-    const cellW = (width / config.grid.width) * viewport.scale;
-    const cellH = (height / config.grid.height) * viewport.scale;
-
-    // Grid
-    if (showGrid && cellW > 4) {
-      ctx.strokeStyle = 'rgba(255,255,255,0.06)';
-      ctx.lineWidth = 0.5;
-      for (let x = 0; x <= config.grid.width; x++) {
-        const px = x * cellW + viewport.offsetX;
-        ctx.beginPath();
-        ctx.moveTo(px, 0);
-        ctx.lineTo(px, height);
-        ctx.stroke();
-      }
-      for (let y = 0; y <= config.grid.height; y++) {
-        const py = y * cellH + viewport.offsetY;
-        ctx.beginPath();
-        ctx.moveTo(0, py);
-        ctx.lineTo(width, py);
-        ctx.stroke();
-      }
-    }
-
-    // Contour lines
-    if (showEquipotentials && solveResult) {
-      const levels = autoContourLevels(solveResult.potential);
-      const contours = extractContours(
-        solveResult.potential,
-        solveResult.width,
-        solveResult.height,
-        levels,
-      );
-
-      ctx.strokeStyle = 'rgba(255,255,255,0.35)';
-      ctx.lineWidth = 1;
-
-      for (const level of contours) {
-        for (const seg of level.segments) {
-          const x1 = seg.x1 * cellW + viewport.offsetX;
-          const y1 = seg.y1 * cellH + viewport.offsetY;
-          const x2 = seg.x2 * cellW + viewport.offsetX;
-          const y2 = seg.y2 * cellH + viewport.offsetY;
-          ctx.beginPath();
-          ctx.moveTo(x1, y1);
-          ctx.lineTo(x2, y2);
-          ctx.stroke();
-        }
-      }
-    }
-
-    // Field vectors
-    if (showVectors && solveResult) {
-      const field = computeFieldVectors(
-        solveResult.potential,
-        solveResult.width,
-        solveResult.height,
-      );
-
-      ctx.strokeStyle = 'rgba(255,255,255,0.6)';
-      ctx.fillStyle = 'rgba(255,255,255,0.6)';
-      ctx.lineWidth = 1;
-
-      const step = VECTOR_SUBSAMPLE;
-      for (let gy = step; gy < field.height - step; gy += step) {
-        for (let gx = step; gx < field.width - step; gx += step) {
-          const idx = gy * field.width + gx;
-          const ex = field.ex[idx];
-          const ey = field.ey[idx];
-          const mag = Math.sqrt(ex * ex + ey * ey);
-          if (mag < 1e-10) continue;
-
-          const cx = (gx + 0.5) * cellW + viewport.offsetX;
-          const cy = (gy + 0.5) * cellH + viewport.offsetY;
-
-          // Scale arrow length by magnitude, capped
-          const len = Math.min(mag * cellW * 2, VECTOR_MAX_LEN);
-          const nx = ex / mag;
-          const ny = ey / mag;
-
-          const tx = cx + nx * len;
-          const ty = cy + ny * len;
-
-          // Arrow line
-          ctx.beginPath();
-          ctx.moveTo(cx, cy);
-          ctx.lineTo(tx, ty);
-          ctx.stroke();
-
-          // Arrowhead
-          const headLen = 4;
-          const angle = Math.atan2(ny, nx);
-          ctx.beginPath();
-          ctx.moveTo(tx, ty);
-          ctx.lineTo(
-            tx - headLen * Math.cos(angle - 0.4),
-            ty - headLen * Math.sin(angle - 0.4),
-          );
-          ctx.lineTo(
-            tx - headLen * Math.cos(angle + 0.4),
-            ty - headLen * Math.sin(angle + 0.4),
-          );
-          ctx.closePath();
-          ctx.fill();
-        }
-      }
-    }
-
-    // Charges
-    for (const charge of config.charges) {
-      const cx = (charge.x + 0.5) * cellW + viewport.offsetX;
-      const cy = (charge.y + 0.5) * cellH + viewport.offsetY;
-      const isSelected = selectedId === charge.id;
-
-      ctx.beginPath();
-      ctx.arc(cx, cy, CHARGE_RADIUS, 0, Math.PI * 2);
-      ctx.fillStyle = charge.q > 0
-        ? (isSelected ? '#ff6b6b' : '#ef5350')
-        : (isSelected ? '#64b5f6' : '#42a5f5');
-      ctx.fill();
-
-      if (isSelected) {
-        ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-      }
-
-      ctx.fillStyle = '#fff';
-      ctx.font = 'bold 14px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(charge.q > 0 ? '+' : '\u2212', cx, cy);
-    }
-  }, [solveResult, viewport, showGrid, showEquipotentials, showVectors, selectedId, getActiveRun]);
-
-  const drawWebGL = useCallback(() => {
-    const renderer = glRendererRef.current;
-    if (!renderer || !solveResult) return;
-
-    // Compute min/max for normalization
-    let min = Infinity;
-    let max = -Infinity;
-    for (let i = 0; i < solveResult.potential.length; i++) {
-      if (solveResult.potential[i] < min) min = solveResult.potential[i];
-      if (solveResult.potential[i] > max) max = solveResult.potential[i];
-    }
-
-    renderer.updatePotential(solveResult.potential, solveResult.width, solveResult.height);
-    renderer.setMinMax(min, max);
-    renderer.render(viewport);
-  }, [solveResult, viewport]);
-
-  const drawFallback = useCallback(() => {
-    if (glRendererRef.current) return; // WebGL available, skip fallback
-    const canvas = webglCanvasRef.current;
-    if (!canvas || !solveResult) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    renderHeatmap2D(
-      ctx,
-      solveResult.potential,
-      solveResult.width,
-      solveResult.height,
-      canvas.width,
-      canvas.height,
+    loop.updateState({
       viewport,
-    );
-  }, [solveResult, viewport]);
+      gridWidth: run?.config.grid.width ?? 128,
+      gridHeight: run?.config.grid.height ?? 128,
+      charges: run?.config.charges ?? [],
+      selectedId,
+      showGrid,
+      showEquipotentials,
+      showVectors,
+    });
+  }, [viewport, selectedId, showGrid, showEquipotentials, showVectors, getActiveRun]);
 
-  // Resize
+  // Resize observer
   useEffect(() => {
     const container = containerRef.current;
-    const webglCanvas = webglCanvasRef.current;
-    const overlayCanvas = overlayCanvasRef.current;
-    if (!container || !webglCanvas || !overlayCanvas) return;
+    const webgl = webglCanvasRef.current;
+    const overlay = overlayCanvasRef.current;
+    if (!container || !webgl || !overlay) return;
 
     const observer = new ResizeObserver((entries) => {
       const { width, height } = entries[0].contentRect;
       const w = Math.floor(width);
       const h = Math.floor(height);
-      webglCanvas.width = w;
-      webglCanvas.height = h;
-      overlayCanvas.width = w;
-      overlayCanvas.height = h;
-      drawWebGL();
-      drawFallback();
-      drawOverlay();
+      webgl.width = w;
+      webgl.height = h;
+      overlay.width = w;
+      overlay.height = h;
+      renderLoopRef.current?.invalidate();
     });
     observer.observe(container);
     return () => observer.disconnect();
-  }, [drawWebGL, drawFallback, drawOverlay]);
+  }, []);
 
-  // Redraw on state changes
-  useEffect(() => {
-    drawWebGL();
-    drawFallback();
-    drawOverlay();
-  }, [drawWebGL, drawFallback, drawOverlay]);
-
-  const handleClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
+  const handleClick = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = overlayCanvasRef.current;
     if (!canvas) return;
     const run = getActiveRun();
@@ -290,7 +120,7 @@ export function FieldCanvas() {
       const newCharge: PointCharge = { id: generateId(), x: gx, y: gy, q };
       forkRun(run.id, { charges: [...run.config.charges, newCharge] });
     }
-  };
+  }, [activeTool, viewport, getActiveRun, forkRun, setSelectedId]);
 
   return (
     <div ref={containerRef} className="field-canvas-container">

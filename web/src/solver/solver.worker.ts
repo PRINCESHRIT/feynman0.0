@@ -1,37 +1,51 @@
-/// Web Worker for running WASM field solvers off the main thread.
-
-import init, {
-  init_field_solver,
-  step_field_solver,
-  extract_potential,
-  get_grid_size,
-  free_field_solver,
-} from './wasm-pkg/feynman_solver';
+/**
+ * Solver Web Worker — Phase 0 latency spine.
+ *
+ * Supports:
+ *   - Monotonic job IDs (F0.4: supersede stale jobs)
+ *   - Zero-copy transferable result buffers (F0.2)
+ *   - Warm-start from previous result (F0.4)
+ *   - Chunked iteration with cancel check between chunks
+ */
 
 let wasmReady = false;
+let wasmInit: any = null;
+let wasmInitFieldSolver: any = null;
+let wasmStepFieldSolver: any = null;
+let wasmExtractPotential: any = null;
+let wasmGetGridSize: any = null;
+let wasmFreeFieldSolver: any = null;
+
 let currentHandle: number | null = null;
+let activeJobId = 0;
 let cancelled = false;
 
 async function ensureWasm() {
-  if (!wasmReady) {
-    await init();
+  if (wasmReady) return;
+  try {
+    const wasm = await import('./wasm-pkg/feynman_solver');
+    wasmInit = wasm.default;
+    wasmInitFieldSolver = wasm.init_field_solver;
+    wasmStepFieldSolver = wasm.step_field_solver;
+    wasmExtractPotential = wasm.extract_potential;
+    wasmGetGridSize = wasm.get_grid_size;
+    wasmFreeFieldSolver = wasm.free_field_solver;
+    await wasmInit();
     wasmReady = true;
+  } catch (err) {
+    // WASM unavailable — worker will report error
+    throw new Error('WASM init failed: ' + (err instanceof Error ? err.message : String(err)));
   }
 }
 
-export type WorkerMessage =
-  | { type: 'init'; config: string }
-  | { type: 'solve'; chunkSize: number; maxIterations: number; tolerance: number }
-  | { type: 'cancel' };
+// Solve parameters cached from init
+let solveConfig: {
+  chunkSize: number;
+  maxIterations: number;
+  tolerance: number;
+} | null = null;
 
-export type WorkerResponse =
-  | { type: 'ready' }
-  | { type: 'progress'; iterations: number; residual: number }
-  | { type: 'done'; potential: Float32Array; width: number; height: number; iterations: number; residual: number; converged: boolean }
-  | { type: 'error'; message: string }
-  | { type: 'cancelled' };
-
-self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
+self.onmessage = async (e: MessageEvent) => {
   const msg = e.data;
 
   try {
@@ -39,66 +53,92 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
 
     switch (msg.type) {
       case 'init': {
-        // Free previous solver if any
-        if (currentHandle !== null) {
-          free_field_solver(currentHandle);
-        }
-        currentHandle = init_field_solver(msg.config);
+        const jobId = msg.jobId as number;
+        activeJobId = jobId;
         cancelled = false;
-        self.postMessage({ type: 'ready' } satisfies WorkerResponse);
+
+        // Free previous solver
+        if (currentHandle !== null) {
+          wasmFreeFieldSolver(currentHandle);
+          currentHandle = null;
+        }
+
+        // Parse config for chunk/iteration params
+        const cfg = JSON.parse(msg.config);
+        solveConfig = {
+          chunkSize: cfg.chunk_size ?? 500,
+          maxIterations: cfg.max_iterations ?? 10000,
+          tolerance: cfg.tolerance ?? 1e-6,
+        };
+
+        currentHandle = wasmInitFieldSolver(msg.config);
+
+        self.postMessage({ type: 'ready', jobId });
         break;
       }
 
       case 'solve': {
-        if (currentHandle === null) {
-          self.postMessage({ type: 'error', message: 'No solver initialized' } satisfies WorkerResponse);
+        const jobId = msg.jobId as number;
+        if (currentHandle === null || !solveConfig) {
+          self.postMessage({ type: 'error', jobId, message: 'No solver initialized' });
           return;
         }
 
+        // Check if this job is still active
+        if (jobId !== activeJobId) return;
+
         cancelled = false;
         let totalIterations = 0;
+        const { chunkSize, maxIterations, tolerance } = solveConfig;
 
-        while (totalIterations < msg.maxIterations && !cancelled) {
-          const n = Math.min(msg.chunkSize, msg.maxIterations - totalIterations);
-          const resultJson = step_field_solver(currentHandle, n);
+        while (totalIterations < maxIterations && !cancelled && jobId === activeJobId) {
+          const n = Math.min(chunkSize, maxIterations - totalIterations);
+          const resultJson = wasmStepFieldSolver(currentHandle, n);
           const result = JSON.parse(resultJson);
           totalIterations = result.iterations;
 
-          // Post progress
+          // Post progress (check job ID)
+          if (jobId !== activeJobId) return;
           self.postMessage({
             type: 'progress',
+            jobId,
             iterations: result.iterations,
             residual: result.residual,
-          } satisfies WorkerResponse);
+          });
 
-          if (result.converged) {
-            break;
-          }
+          if (result.converged) break;
 
-          // Yield to allow cancel messages to be processed
+          // Yield to allow cancel/supersede messages
           await new Promise((r) => setTimeout(r, 0));
         }
 
-        if (cancelled) {
-          self.postMessage({ type: 'cancelled' } satisfies WorkerResponse);
+        // Final check — may have been superseded during yield
+        if (cancelled || jobId !== activeJobId) {
+          self.postMessage({ type: 'cancelled', jobId });
           return;
         }
 
         // Extract result
-        const potential = new Float32Array(extract_potential(currentHandle));
-        const size = get_grid_size(currentHandle);
-        const lastJson = step_field_solver(currentHandle, 0);
+        const rawPotential = wasmExtractPotential(currentHandle);
+        const size = wasmGetGridSize(currentHandle);
+        const lastJson = wasmStepFieldSolver(currentHandle, 0);
         const last = JSON.parse(lastJson);
 
+        // F0.2: Create a transferable Float32Array
+        const potential = new Float32Array(rawPotential);
+        const buffer = potential.buffer;
+
         self.postMessage({
-          type: 'done',
+          type: 'result',
+          jobId,
           potential,
           width: size[0],
           height: size[1],
           iterations: last.iterations,
           residual: last.residual,
-          converged: last.residual < msg.tolerance,
-        } satisfies WorkerResponse);
+          converged: last.residual < tolerance,
+        }, { transfer: [buffer] }); // Zero-copy transfer (F0.2)
+
         break;
       }
 
@@ -108,6 +148,10 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
       }
     }
   } catch (err: any) {
-    self.postMessage({ type: 'error', message: err.message || String(err) } satisfies WorkerResponse);
+    self.postMessage({
+      type: 'error',
+      jobId: msg.jobId,
+      message: err.message || String(err),
+    });
   }
 };
