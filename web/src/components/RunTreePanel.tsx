@@ -1,10 +1,9 @@
-import { useMemo, useCallback } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import {
   ReactFlow,
   type Node,
   type Edge,
   type NodeTypes,
-  type OnNodeClick,
   Background,
   BackgroundVariant,
 } from '@xyflow/react';
@@ -74,7 +73,7 @@ export function RunTreePanel() {
     return { nodes, edges };
   }, [runs, activeRunId]);
 
-  const onNodeClick: OnNodeClick = useCallback((_event, node) => {
+  const onNodeClick = useCallback((_event: React.MouseEvent, node: Node) => {
     setActiveRun(node.id);
   }, [setActiveRun]);
 
