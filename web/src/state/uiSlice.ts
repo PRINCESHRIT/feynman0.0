@@ -15,6 +15,8 @@ export interface UiSlice {
   diffMode: boolean;
   diffRunIdA: string | null;
   diffRunIdB: string | null;
+  gridSnap: number; // snap grid size (1 = every cell, 5 = every 5 cells)
+  snapEnabled: boolean;
   toggleEquipotentials: () => void;
   toggleVectors: () => void;
   toggleGrid: () => void;
@@ -22,6 +24,8 @@ export interface UiSlice {
   setResolution: (res: number) => void;
   setDiffMode: (on: boolean) => void;
   setDiffRuns: (idA: string, idB: string) => void;
+  setGridSnap: (snap: number) => void;
+  toggleSnap: () => void;
 }
 
 export const createUiSlice: StateCreator<UiSlice> = (set) => ({
@@ -33,6 +37,8 @@ export const createUiSlice: StateCreator<UiSlice> = (set) => ({
   diffMode: false,
   diffRunIdA: null,
   diffRunIdB: null,
+  gridSnap: 1,
+  snapEnabled: true,
   toggleEquipotentials: () => set((s) => ({ showEquipotentials: !s.showEquipotentials })),
   toggleVectors: () => set((s) => ({ showVectors: !s.showVectors })),
   toggleGrid: () => set((s) => ({ showGrid: !s.showGrid })),
@@ -40,4 +46,6 @@ export const createUiSlice: StateCreator<UiSlice> = (set) => ({
   setResolution: (resolution) => set({ resolution }),
   setDiffMode: (diffMode) => set({ diffMode }),
   setDiffRuns: (diffRunIdA, diffRunIdB) => set({ diffRunIdA, diffRunIdB, diffMode: true }),
+  setGridSnap: (gridSnap) => set({ gridSnap: Math.max(1, gridSnap) }),
+  toggleSnap: () => set((s) => ({ snapEnabled: !s.snapEnabled })),
 });
