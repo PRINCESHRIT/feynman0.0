@@ -1,0 +1,131 @@
+.sweep-panel {
+  border-bottom: 1px solid var(--border);
+}
+
+.sweep-header {
+  padding: 8px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--border);
+}
+
+.sweep-fields {
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sweep-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+}
+
+.sweep-row span {
+  color: var(--text-secondary);
+  min-width: 50px;
+}
+
+.sweep-select,
+.sweep-input {
+  width: 100px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 3px 6px;
+  font-size: 12px;
+}
+
+.sweep-btn {
+  padding: 6px 12px;
+  background: rgba(79, 195, 247, 0.15);
+  color: var(--accent);
+  border: 1px solid rgba(79, 195, 247, 0.3);
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  margin-top: 4px;
+}
+
+.sweep-btn:hover:not(:disabled) {
+  background: rgba(79, 195, 247, 0.25);
+}
+
+.sweep-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.sweep-results {
+  padding: 8px 12px;
+}
+
+.sweep-results-header {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.sweep-failed {
+  color: var(--error);
+}
+
+.sweep-progress-bar {
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.sweep-progress-fill {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.2s;
+}
+
+.sweep-series {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+}
+
+.sweep-series-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-size: 9px;
+  min-width: 36px;
+}
+
+.sweep-series-item.converged {
+  background: rgba(102, 187, 106, 0.1);
+  color: var(--success);
+}
+
+.sweep-series-item.failed {
+  background: rgba(239, 83, 80, 0.1);
+  color: var(--error);
+}
+
+.sweep-dot {
+  font-size: 10px;
+}
+
+.sweep-val {
+  font-family: monospace;
+}
+
+.sweep-hint {
+  padding: 12px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  text-align: center;
+}

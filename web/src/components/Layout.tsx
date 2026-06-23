@@ -10,6 +10,7 @@ import { BoundaryControls } from './BoundaryControls';
 import { CircuitResultPanel } from './CircuitResultPanel';
 import { LiveControls } from './LiveControls';
 import { FieldProbe } from './FieldProbe';
+import { SweepPanel } from './SweepPanel';
 import { ConflictList } from './ConflictList';
 import { StatusBar } from './StatusBar';
 import { ErrorBoundary } from './ErrorBoundary';
@@ -259,6 +260,7 @@ export function Layout() {
               <FieldProbe />
               <PropertyPanel />
               <BoundaryControls />
+              <SweepPanel />
             </>
           )}
           <ConflictList />
