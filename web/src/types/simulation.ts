@@ -72,6 +72,7 @@ export type EditorTool =
   | 'select'
   | 'place_positive'
   | 'place_negative'
+  | 'place_conductor'
   | 'place_resistor'
   | 'place_vsource'
   | 'place_isource'

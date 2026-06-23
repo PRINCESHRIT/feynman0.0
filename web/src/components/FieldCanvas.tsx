@@ -207,16 +207,18 @@ export function FieldCanvas() {
     const run = getActiveRun();
     if (!run) return;
 
-    // F1.1: Placement tools
-    if (activeTool === 'place_positive' || activeTool === 'place_negative') {
+    // F1.1 + F4.1: Placement tools
+    if (activeTool === 'place_positive' || activeTool === 'place_negative' || activeTool === 'place_conductor') {
       const { gx, gy } = getGridCoords(px, py);
       if (gx < 0 || gx >= run.config.grid.width || gy < 0 || gy >= run.config.grid.height) return;
 
       // F1.1 error: check for overlap
       const overlap = run.config.charges.find((c) => c.x === gx && c.y === gy);
-      if (overlap) return; // Snap to nearest free cell would go here
+      if (overlap) return;
 
-      const q = activeTool === 'place_positive' ? 1.0 : -1.0;
+      const q = activeTool === 'place_positive' ? 1.0
+        : activeTool === 'place_negative' ? -1.0
+        : 0; // Conductor: q=0, acts as fixed-voltage reference
       const newCharge: PointCharge = { id: generateId(), x: gx, y: gy, q };
       forkRun(run.id, { charges: [...run.config.charges, newCharge] });
       setSelectedIds(new Set([newCharge.id]));
