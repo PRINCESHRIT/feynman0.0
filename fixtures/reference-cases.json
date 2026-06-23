@@ -1,0 +1,154 @@
+{
+  "version": 1,
+  "description": "Shared reference cases for Rust + TS + WASM test suites. Each case has an analytical or known-good expected output.",
+
+  "field_cases": {
+    "RC-1": {
+      "name": "Parallel Plates",
+      "description": "Left edge V=1, right edge V=0, top/bottom V=0. Interior should be approximately linear: V(x) ≈ 1 - x/(W-1). O(h²) tolerance.",
+      "config": {
+        "grid": { "width": 33, "height": 33 },
+        "charges": [],
+        "boundary": { "type": "dirichlet_fixed", "voltages": [0, 0, 0, 1] },
+        "engine": "gauss_seidel",
+        "maxIterations": 10000,
+        "tolerance": 1e-6
+      },
+      "checks": {
+        "linear_gradient": {
+          "description": "At y=16 (center row), V(x,16) ≈ 1 - x/32 for x in [1..31]",
+          "row": 16,
+          "expected_fn": "1 - x / (width - 1)",
+          "tolerance": 0.05
+        },
+        "left_boundary": 1.0,
+        "right_boundary": 0.0,
+        "monotonic_decrease_left_to_right": true
+      }
+    },
+
+    "RC-2": {
+      "name": "Point Charge Symmetry",
+      "description": "Single +1 charge at center of 33×33 grid, Dirichlet zero BC. Four-fold symmetry: V(16+d,16) ≈ V(16-d,16) ≈ V(16,16+d) ≈ V(16,16-d).",
+      "config": {
+        "grid": { "width": 33, "height": 33 },
+        "charges": [{ "id": "q1", "x": 16, "y": 16, "q": 1.0 }],
+        "boundary": { "type": "dirichlet_zero" },
+        "engine": "gauss_seidel",
+        "maxIterations": 10000,
+        "tolerance": 1e-6
+      },
+      "checks": {
+        "symmetry_tolerance": 1e-6,
+        "center_positive": true,
+        "boundary_zero": true,
+        "gauss_check": {
+          "description": "Gauss law flux ratio should be near 1.0",
+          "tolerance": 0.15
+        }
+      }
+    },
+
+    "RC-3": {
+      "name": "Laplace Box (Uniform Dirichlet)",
+      "description": "All edges V=1, no charges. Laplace equation → V=1 everywhere interior.",
+      "config": {
+        "grid": { "width": 33, "height": 33 },
+        "charges": [],
+        "boundary": { "type": "dirichlet_fixed", "voltages": [1, 1, 1, 1] },
+        "engine": "gauss_seidel",
+        "maxIterations": 10000,
+        "tolerance": 1e-6
+      },
+      "checks": {
+        "uniform_interior": {
+          "expected_value": 1.0,
+          "tolerance": 0.001
+        }
+      }
+    },
+
+    "RC-4": {
+      "name": "Dipole Antisymmetry",
+      "description": "+1 at (12,16), -1 at (20,16) on 33×33. Midpoint V(16,16) ≈ 0. Antisymmetric: V(16+d,16) ≈ -V(16-d,16).",
+      "config": {
+        "grid": { "width": 33, "height": 33 },
+        "charges": [
+          { "id": "qp", "x": 12, "y": 16, "q": 1.0 },
+          { "id": "qn", "x": 20, "y": 16, "q": -1.0 }
+        ],
+        "boundary": { "type": "dirichlet_zero" },
+        "engine": "gauss_seidel",
+        "maxIterations": 10000,
+        "tolerance": 1e-6
+      },
+      "checks": {
+        "midpoint_zero": {
+          "x": 16, "y": 16,
+          "tolerance": 0.01
+        },
+        "antisymmetry_tolerance": 0.01
+      }
+    },
+
+    "RC-5": {
+      "name": "Convergence Ordering",
+      "description": "Same config solved by Jacobi, GS, SOR. Iterations: SOR < GS < Jacobi.",
+      "config": {
+        "grid": { "width": 33, "height": 33 },
+        "charges": [{ "id": "q1", "x": 16, "y": 16, "q": 1.0 }],
+        "boundary": { "type": "dirichlet_zero" },
+        "maxIterations": 50000,
+        "tolerance": 1e-6
+      },
+      "checks": {
+        "iteration_ordering": "SOR < GS < Jacobi",
+        "all_converge": true
+      }
+    }
+  },
+
+  "circuit_cases": {
+    "RC-6": {
+      "name": "Voltage Divider",
+      "description": "5V source, two equal 1kΩ resistors. Node 2 = 2.5V, current = 2.5mA.",
+      "config": {
+        "components": [
+          { "id": "V1", "type": "voltage_source", "nodeA": 1, "nodeB": 0, "value": 5.0 },
+          { "id": "R1", "type": "resistor", "nodeA": 1, "nodeB": 2, "value": 1000 },
+          { "id": "R2", "type": "resistor", "nodeA": 2, "nodeB": 0, "value": 1000 },
+          { "id": "GND", "type": "ground", "nodeA": 0, "nodeB": 0 }
+        ],
+        "nextNodeId": 3
+      },
+      "checks": {
+        "node_voltages": { "1": 5.0, "2": 2.5 },
+        "branch_current_R1": 0.0025,
+        "tolerance": 1e-6
+      }
+    },
+
+    "RC-7": {
+      "name": "Wheatstone Bridge",
+      "description": "10V source, balanced bridge: R1=R2=R3=R4=1kΩ. Bridge voltage = 0V.",
+      "config": {
+        "components": [
+          { "id": "V1", "type": "voltage_source", "nodeA": 1, "nodeB": 0, "value": 10.0 },
+          { "id": "R1", "type": "resistor", "nodeA": 1, "nodeB": 2, "value": 1000 },
+          { "id": "R2", "type": "resistor", "nodeA": 1, "nodeB": 3, "value": 1000 },
+          { "id": "R3", "type": "resistor", "nodeA": 2, "nodeB": 0, "value": 1000 },
+          { "id": "R4", "type": "resistor", "nodeA": 3, "nodeB": 0, "value": 1000 },
+          { "id": "GND", "type": "ground", "nodeA": 0, "nodeB": 0 }
+        ],
+        "nextNodeId": 4
+      },
+      "checks": {
+        "node_voltages": { "1": 10.0, "2": 5.0, "3": 5.0 },
+        "bridge_zero": {
+          "description": "V(node2) - V(node3) = 0",
+          "tolerance": 1e-6
+        }
+      }
+    }
+  }
+}

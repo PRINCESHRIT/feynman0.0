@@ -1,3 +1,4 @@
+/// <reference types="vitest/config" />
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import wasm from 'vite-plugin-wasm';
@@ -14,5 +15,11 @@ export default defineConfig({
       wasm(),
       topLevelAwait(),
     ],
+  },
+  test: {
+    include: ['tests/**/*.test.ts'],
+    globals: false,
+    environment: 'node',
+    testTimeout: 30000,
   },
 });
