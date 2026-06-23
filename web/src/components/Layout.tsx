@@ -8,6 +8,7 @@ import { Palette } from './Palette';
 import { PropertyPanel } from './PropertyPanel';
 import { BoundaryControls } from './BoundaryControls';
 import { CircuitResultPanel } from './CircuitResultPanel';
+import { LiveControls } from './LiveControls';
 import { ConflictList } from './ConflictList';
 import { StatusBar } from './StatusBar';
 import { ErrorBoundary } from './ErrorBoundary';
@@ -253,6 +254,7 @@ export function Layout() {
             <CircuitResultPanel />
           ) : (
             <>
+              <LiveControls />
               <PropertyPanel />
               <BoundaryControls />
             </>
