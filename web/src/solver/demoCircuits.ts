@@ -14,7 +14,6 @@ export function resistorDividerDemo(): CircuitConfig {
       { id: 'V1', type: 'voltage_source', nodeA: 1, nodeB: 0, value: 10.0, x: 100, y: 250, rotation: 0 },
       { id: 'R1', type: 'resistor', nodeA: 1, nodeB: 2, value: 1000, x: 300, y: 100, rotation: 0 },
       { id: 'R2', type: 'resistor', nodeA: 2, nodeB: 0, value: 2000, x: 300, y: 250, rotation: 0 },
-      { id: 'W1', type: 'wire', nodeA: 1, nodeB: 1, value: 0, x: 200, y: 50, rotation: 0 },
     ],
   };
 }
